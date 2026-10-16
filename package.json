@@ -1,0 +1,51 @@
+{
+  "name": "logo-substitute",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DSH Web GUI 品牌替换插件 / replace the sidebar brand mark and name：在设置导航新增「Logo替换」子菜单，可把侧边栏品牌的鲸鱼标志与 deepseek 字形换成自定义图标与文字（保留 HARNESS 标记）。",
+  "license": "MIT",
+  "author": "JakeKim@XingHaoTech",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "web-gui",
+    "brand",
+    "logo",
+    "sidebar"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "tools/smoke-test.mjs"
+  ],
+  "scripts": {
+    "smoke": "node tools/smoke-test.mjs"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}
