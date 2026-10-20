@@ -1,6 +1,6 @@
-# logo-substitute 的 bundle patch：把插件行插入 profile 的 web 组成。
+# dsh-logo-substitute 的 bundle patch：把插件行插入 profile 的 web 组成。
 # 宿主半（exports "."）跑在 Host 进程；package.json 的 dsh.client 声明让
 # 浏览器半（exports "./client"）在 Web GUI 里加载。
 - insert:
-    - id: logo-substitute
-      name: logo-substitute
+    - id: dsh-logo-substitute
+      name: dsh-logo-substitute

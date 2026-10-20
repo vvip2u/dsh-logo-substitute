@@ -1,179 +1,122 @@
-# logo-substitute
+# dsh-logo-substitute
 
-DSH（DeepSeek Harness）Web GUI 品牌替换插件。
+DSH（DeepSeek Harness）Web GUI 品牌替换 + 充值余额显示插件。
 
-> **自用声明**：本项目是作者**自用**的小工具，顺手开源给小范围的朋友共用，
-> 按 **MIT** 协议授权，你可以自由使用、修改、再分发。
+> **自用声明**：本项目是作者**自用**的小工具，顺手开源给小范围的朋友共用，按 **MIT** 协议授权。
+
+> 旧名 `logo-substitute`，v1.1 起更名为 `dsh-logo-substitute`。配置仍沿用原来的 localStorage key
+> `logo-substitute:v1`，改名不会丢已有的图标与文字。
 
 ## 功能
 
-在「设置」里新增一个 **Logo替换** 子菜单，把侧边栏顶部品牌行里的**鲸鱼标志**与
-**deepseek 字形**换成你自己的图标与文字。
+1. **品牌替换**：把侧边栏顶部的鲸鱼标志与 `deepseek` 字形换成自定义正方形图标与文字，HARNESS 标记保留。
+2. **充值余额**：在品牌行 HARNESS 右侧显示「充值余额」，与【设置】-【账号与余额】的【充值余额】**同一数据源**；
+   可关闭，可设阈值，低于阈值变红。
 
-- 页面顶部是「使用默认」/「使用自定义」两个切换标签，底部固定一个「保存」按钮。
-- 「使用自定义」时提供两项输入：**图标上传**（图片）与**文字标识名称**。
-- 保存「使用自定义」后，侧边栏品牌行变成：**你的图标 + 你的文字 + `HARNESS`**。
-  官方 `HARNESS` 标记**保留**，由本插件接在自定义文字后面重绘。
-- 保存「使用默认」则恢复官方品牌（鲸鱼 + deepseek HARNESS）。这一步**不会删除**你已上传的
-  图片与文字 —— 随时切回「使用自定义」继续用，无需重新上传。
-- 图标只要求**宽高相等（正方形）**，对像素尺寸没有限制；非正方形会给出中文提示，
-  并且**不会覆盖**已保存的设置。
-- 页面底部显示插件版本号与作者信息。
-- 配置存在渲染层 `localStorage`（key `logo-substitute:v1`），刷新 / 重启 GUI 后仍然生效。
+## 设置入口
 
-## 效果
+【设置】-【Logo替换】，两个标签：
 
-| | 品牌行显示 |
+| 标签 | 内容 |
 |---|---|
-| 使用默认 | 🐳 `deepseek HARNESS`（官方原样） |
-| 使用自定义 | 你的图标 + 你的文字 + `HARNESS` |
+| 使用默认 | 侧栏恢复官方品牌（鲸鱼 + deepseek 字形）；自定义图片与文字保留，随时可切回 |
+| 使用自定义 | 图标（正方形图片）、文字标识名称、**在侧栏显示充值余额**、**低于多少元变红**（整数元阈值） |
 
-## 环境要求
+余额开关与阈值放在「使用自定义」标签下，但**对两种品牌模式都生效**。反过来说：若当前停留在「使用默认」标签，
+要改这两项得先点一下「使用自定义」标签、改完再点回「使用默认」保存（「保存」在页脚，与该标签无关）。
 
-| 项 | 值 |
+## 余额显示规则
+
+| 情况 | 表现 |
 |---|---|
-| 插件版本 | **1.0**（`package.json` 的 `version` 为 `1.0.0`，同一个版本） |
-| DSH 版本 | 在 `0.2.0-rc.2` 上验证通过；`dsh.engines.dsh` 声明 `>=0.2.0-rc.2`（**仅作声明**，宿主不强制校验） |
-| 宿主平台 | Web GUI（桌面版与网页版共用同一套渲染层） |
-| 运行时依赖 | **无**。浏览器半只 `require('react')`，不 `require` 任何 `@deepseek-ai/*` 包 |
-| 构建步骤 | **无**。浏览器半是手写的 ModuleLoader bundle |
+| 已登录、读取成功 | 深底浅灰字的药丸，显示金额如 `¥12.34`（浅色主题下即「黑底灰字」） |
+| 金额严格小于阈值（且阈值 > 0） | 同一位置换成**红底白字**药丸 |
+| 未登录 | 不显示 |
+| 已登录但读取失败 | 灰色 `--`（任何情况都不会显示成 0） |
+| 开关关闭 | 不显示 |
+| 侧栏折叠 | 不显示（折叠态只有图标，没有品牌名） |
 
-## 安装
+- **不含赠金余额**，只算「充值余额」；多币种按官方规则用 ` + ` 连接（如 `¥1.00 + $2.00`）。
+- **阈值只比较 CNY 充值钱包**；填 0 表示不启用红色提醒；阈值必须是整数元。
+- 数字每 60 秒刷新，窗口重新聚焦 / 页面重新可见时立即刷新；不可点击（点击穿透给品牌按钮，不影响「新建会话」）。
+- **样式**：两态都是圆角药丸，只换底与字——
+  正常 `background: --dsw-alias-label-primary` + `color: --dsw-alias-label-tertiary`（深底灰字）；
+  告警 `background: --dsw-alias-state-error-primary` + `color: --dsw-static-neutral-bluish-00`（红底纯白字）。
+  告警态刻意用静态白色而不是 `--dsw-alias-label-primary-foreground`：后者会随主题反转，暗色主题下变成深字压红底。
+  「未登录」不渲染，「读取失败」的 `--` 沿用正常态药丸（它不是告警）。
 
-DSH 的「添加插件」（**设置 → 插件 → 添加插件**）接受四类输入：**包名（可带版本）**、
-**Git 地址**、**压缩包**、**本地绝对路径**。任选其一即可。
+## 数据来源（为什么不自己算钱）
 
-### 方式一：图形界面（不熟悉命令行的话用这个）
+宿主半调用 cordis 服务 `accountController.getBalance()`——与官方【设置】-【账号与余额】页同一次调用；
+金额排版逐字复刻官方的 `formatBalance`：
 
-1. 把本目录放到本机 —— 直接拷贝、或 `git clone`、或用解压后的压缩包。
-2. 打开 DSH → **设置 → 插件 → 添加插件**。
-3. 填入下列任意一种，然后点「安装」：
-   - 本地目录的绝对路径，例如 `/绝对/路径/logo-substitute`
-   - Git 地址，例如 `https://github.com/<你的账号>/logo-substitute.git`
-   - 你打好的压缩包路径，例如 `/绝对/路径/logo-substitute-1.0.0.tgz`
-4. **重启 DSH 图形界面**（bundle 组成只在启动时装配）。
+```
+v == 0            -> ¥0.00
+0 < v < 0.01      -> <¥0.01
+v >= 0.01         -> ¥ + 千分位 + 两位小数（向下截断）
+v < 0             -> -¥ + (|v| > 0.01 ? 四舍五入到两位 : 0.01)
+```
 
-### 方式二：命令行
+这条规则**正负不对称**（正数截断、负数四舍五入）是官方原样行为，本插件照抄，不是笔误——
+一改成对称就会与设置页的显示永久分叉。
+
+浏览器半只消费一条同源接口，不依赖任何 `@deepseek-ai/*` 客户端包：
+
+```
+GET /plugins/dsh-logo-substitute/balance
+{ ok, status: "ready" | "signed-out" | "failed" | "unavailable",
+  display, primaryCny, wallets: [{currency, balance, display}], bonusWallets: [...], fetchedAt, error? }
+```
+
+宿主端 15 秒进程内缓存（`?force=1` 绕过），浏览器端 60 秒轮询，避免频繁打到 Platform 接口。
+
+## 安装（本机）
+
+目录名即包名。profile 用 `link:` 引用源码目录：
 
 ```bash
-# 本地目录，link 安装：改源码即时生效，适合自己开发调试
-dsh plugin --profile desktop add link:/绝对/路径/logo-substitute
-
-# 本地目录，拷贝安装：装完与源目录无关
-dsh plugin --profile desktop add /绝对/路径/logo-substitute
-
-# Git 仓库
-dsh plugin --profile desktop add https://github.com/<你的账号>/logo-substitute.git
-
-# 压缩包
-dsh plugin --profile desktop add /绝对/路径/logo-substitute-1.0.0.tgz
+/Applications/DeepSeek\ Harness.app/Contents/Resources/runtime/cli/bin/dsh \
+  plugin --profile desktop add link:/Users/jake/workspace/dsh_space/dsh-diy-plugins/dsh-logo-substitute
 ```
 
-> 图形界面用的 profile 名是 **`desktop`**。装到别的 profile（比如 `web`）当前界面看不到。
+两个坑：
 
-装完**重启 DSH 图形界面**，再打开 设置 → 左侧应出现「Logo替换」。
+1. profile 的 `dsh.profile.bundles` 是**显式有序清单**，`dsh plugin` 只把参数转发给 pnpm、不会改它。
+   改包名后必须同步把 `~/.dsh/profiles/desktop/package.json` 里 bundles 的旧名换成 `dsh-logo-substitute`，
+   否则启动时该 bundle 会被跳过（stderr 出现 `skipping profile bundle` 警告），插件等于没装。
+2. v1.1 新增了宿主路由。实测 `dsh plugin add` 会让运行中的 Host 重新装载宿主半（路由立即可用），
+   但**浏览器半要刷新一次窗口**（Cmd+R）才会拿到新的客户端行；刷新后若侧栏仍是旧表现，再重启 App。
+   此后修改宿主代码若路由未生效，同样重启一次即可。
 
-## 使用
+## 已知取舍
 
-1. 打开 **设置 → Logo替换**
-2. 选「**使用自定义**」
-3. 上传一张**正方形**图片
-4. 填「文字标识名称」
-5. 点「**保存**」→ 侧边栏品牌行立即更新（不用刷新）
+- **官方品牌模式下的挂载方式**：默认品牌的名字是 SVG 字形，无法用 React 渲染进它内部，所以 chip 用
+  `[class*="brandName"]` 定位品牌名 span 后 `appendChild` 到末尾，并用 `MutationObserver` 兜住 React 重渲染。
+  失败模式是良性的（chip 不出现），不影响侧栏本身；自定义模式由 React 正常渲染，两者不会重复显示。
+- 不依赖任何 `@deepseek-ai/*` 客户端包（私有不稳定 API），浏览器半只 `require('react')`。
+- 颜色只用主题 token：`--dsw-alias-label-tertiary`（正常）/ `--dsw-alias-state-error-primary`（告警），深浅色自动跟随。
 
-想还原成官方品牌：回到该页选「使用默认」，再点「保存」。
-
-## 卸载
+## 测试
 
 ```bash
-dsh plugin --profile desktop remove logo-substitute
+node tools/smoke-test.mjs        # 浏览器半：SMOKE OK: n/m
+node --test tools/host-test.mjs  # 宿主半：formatBalance / 路由 / 缓存
 ```
-
-也可以在 **设置 → 插件** 里停用 / 卸载，然后重启界面。
-
-本插件**不修改 DSH 的任何官方文件**，卸载后侧边栏品牌自动回到官方显示；
-如果你的配置想一并清掉，删掉 `localStorage` 里的 `logo-substitute:v1` 键即可。
-
-## 外观
-
-界面全部使用 DSH 主题 token（`--dsw-alias-*`），深浅色自动跟随，无任何硬编码颜色。
-自定义图标按品牌位容器尺寸（24px）等比 `object-fit: contain` 显示。
-
-HARNESS 字样用 10px、字距 `.12em`、三级文字色绘制，尽量贴合官方观感。
-
-## 已知限制
-
-- **`HARNESS` 标记是插件重绘的**，不是官方那段手绘 SVG 字形 —— 官方把「deepseek」和
-  「HARNESS」焊在同一个 SVG 里，无法只保留后者。所以它**不会像素级一致**。
-- 配置存在 `localStorage`，**按机器**保存，不跨机器同步；清空 DSH 的站点数据会丢配置。
-- 只替换**侧边栏品牌行**。「新建会话」按钮本身以及其它界面元素不受影响。
-- 插件**不支持自动更新**：升级需要先卸载再装新版。
-
-## 故障排查
-
-**装完看不到「Logo替换」** —— 依次检查：
-
-1. 是否**重启了整个图形界面**。只刷新页面不够，bundle 组成在启动时才装配。
-2. `~/.dsh/profiles/desktop/package.json` 里是否有**两处**条目，缺一不可：
-   - `dependencies` 里有 `"logo-substitute"`
-   - `dsh.profile.bundles` 数组里有 `"logo-substitute"` ← **这一处才决定插件是否被加载**
-3. 个别环境下 `dsh plugin ... add` 会在写完 npm 侧（`dependencies` / `node_modules` 软链 /
-   `pnpm-lock.yaml`）之后**卡住不返回**，于是 `bundles` 没被写入。此时手动把
-   `"logo-substitute"` 加进 `dsh.profile.bundles` 再重启即可。**改之前先备份该文件。**
-
-**品牌行空白而不是回落官方** —— 说明自定义图片数据坏了（例如手工改过 `localStorage`）。
-删掉 `logo-substitute:v1` 这个键，刷新即可恢复。
-
-## 目录结构
-
-```
-logo-substitute/
-├── package.json          # 包清单：exports、license、files、dsh.bundle.patch、dsh.client
-├── index.js              # 宿主半（exports "."），纯 UI 插件，无逻辑
-├── client.js             # 浏览器半（exports "./client"），手写 ModuleLoader bundle
-├── cordis.patch.yml      # bundle patch：把插件行插入 profile 的 web 组成
-├── README.md
-├── LICENSE               # MIT
-├── .gitignore
-└── tools/
-    └── smoke-test.mjs    # 冒烟校验脚本（npm run smoke）
-```
-
-## 实现要点（为什么不会和官方品牌打架）
-
-`sidebar.brand.mark`（鲸鱼）与 `sidebar.brand.name`（deepseek HARNESS）都是 `single`
-席位，官方包 `@deepseek-ai/dsh-client-ui-brand-official` 以 priority 0 注册它们。
-
-引擎在 `single` 席位上不允许**同 priority** 二次注册，但允许**不同 priority 共存**，
-并且渲染时**priority 数值最小者胜出**。因此本插件以 `priority: -1` 接管这两个席位，
-而且只在「已保存模式为自定义、且有图片」时才注册；一旦切回默认就立即 `dispose`，
-让官方品牌自然回来 —— 本插件**不**复刻官方鲸鱼 SVG 来当"默认"，避免随 DSH 版本漂移。
-
-## 自检
-
-```bash
-node tools/smoke-test.mjs   # 或 npm run smoke
-```
-
-纯 node、零依赖、不联网、不写盘：stub `window.__ModuleLoader__` + stub `react` + 假
-`ctx.slots` + 假 `localStorage`，覆盖入口契约、`settings.section` 席位注册、
-品牌席位的 `priority: -1` 与切回默认后的释放、正方形校验、持久化 round-trip、脏数据回落，
-以及底部插件信息（版本 / 作者）。全部通过时打印 `SMOKE OK: n/n` 并以 0 退出。
 
 ## 示例
-![Demo](demo.png)
+### 修改Logo后的界面
+![Demo](pics/demo.png)
+### 余额不足的显示
+![Loss Balance](pics/loss_balance.png)
+### Logo替换插件的设置
+![Settings](pics/settings.png)
 
-## 免责声明
-本插件**不修改 DSH 的任何官方文件**，卸载后侧边栏品牌自动回到官方显示；
-如果你的配置想一并清掉，删掉 `localStorage` 里的 `logo-substitute:v1` 键即可。
-仅供学习专用。
+## 版本
 
-## 作者
-
-**JakeKim@XingHaoTech** ｜ 微信：**vvip2u**
-
-## 许可
-
-[MIT](LICENSE) © 2026 JakeKim@XingHaoTech
+- **v1.2.0** —— 余额改为实心药丸：正常态深底灰字，低于阈值为红底白字（`--dsw-static-neutral-bluish-00` 静态白，
+  不会在暗色主题下反转成深字）。
+- **v1.1.0** —— 更名 `dsh-logo-substitute`；新增宿主半与充值余额显示（开关 / 阈值 / 红色告警）。
+- v1.0.0 —— 品牌替换（图标 + 文字 + HARNESS）。
 
 本项目为作者自用工具，按 MIT 协议开源。软件按「原样」提供，不附带任何形式的担保。
+作者 JakeKim ｜ 微信 vvip2u
